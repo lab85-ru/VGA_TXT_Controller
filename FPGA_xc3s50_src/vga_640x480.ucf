@@ -1,0 +1,29 @@
+
+
+NET "i_clk" LOC = P79;
+
+
+NET "i_clk" IOSTANDARD = LVCMOS33;
+NET "i_spi_cs" IOSTANDARD = LVCMOS33;
+NET "i_spi_mosi" IOSTANDARD = LVCMOS33;
+NET "i_spi_sck" IOSTANDARD = LVCMOS33;
+NET "o_hs" IOSTANDARD = LVCMOS33;
+NET "o_spi_miso" IOSTANDARD = LVCMOS33;
+NET "o_vs" IOSTANDARD = LVCMOS33;
+NET "o_video_r" IOSTANDARD = LVCMOS33;
+NET "o_video_g" IOSTANDARD = LVCMOS33;
+NET "o_video_b" IOSTANDARD = LVCMOS33;
+
+
+NET "i_spi_cs" LOC = P2;
+NET "i_spi_mosi" LOC = P3;
+NET "i_spi_sck" LOC = P76;
+NET "o_spi_miso" LOC = P9;
+NET "o_hs" LOC = P199;
+NET "o_vs" LOC = P204;
+
+# PlanAhead Generated physical constraints 
+
+NET "o_video_r" LOC = P194;
+NET "o_video_g" LOC = P196;
+NET "o_video_b" LOC = P198;
