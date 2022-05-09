@@ -56,9 +56,9 @@
 
 //`define DEBUG
 
-//`define VGA80x25 // font 8x16
 //
-`define VGA64x30 // font 8x16
+`define VGA80x25 // font 8x16
+//`define VGA64x30 // font 8x16
 //`define VGA64x60 // font 8x8
 
 module vga_640x480_text (
@@ -329,15 +329,35 @@ begin
 		  vs_c <= vs_c + 1'b1;
 	 end
 
-//	 24800-1+32000: // -40 strok FOR XXx25 strok !
+`ifdef VGA80x25
+	 24800-1+32000: // -40 strok FOR XXx25 strok !
+`endif
+
+`ifdef VGA64x30
 	 24800-1:
+`endif
+
+`ifdef VGA64x60
+	 24800-1:
+`endif
+
 	 begin
 	     hs_en_h <= 1;            // enable HS module
 		  vs_c <= vs_c + 1'b1;
 	 end
 
-//	 408800-1-32000: // -40 strok FOR XXx25 strok !
+`ifdef VGA80x25
+	 408800-1-32000: // -40 strok FOR XXx25 strok !
+`endif
+
+`ifdef VGA64x30
 	 408800-1:
+`endif
+
+`ifdef VGA64x30
+	 408800-1:
+`endif
+
  	 begin
 	     hs_en_h <= 0;            // disable HS module
 		  vs_c <= vs_c + 1'b1;
@@ -385,7 +405,7 @@ begin
 		  end
 
 `ifdef VGA80x25
-		  784-1+8:                     // stop ACTIVE string
+		  784-1:                     // stop ACTIVE string
 `endif
 `ifdef VGA64x30
 		  784-1+10:                     // stop ACTIVE string
