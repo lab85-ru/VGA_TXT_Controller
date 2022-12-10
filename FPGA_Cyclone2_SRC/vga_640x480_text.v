@@ -354,7 +354,7 @@ begin
 	 408800-1:
 `endif
 
-`ifdef VGA64x30
+`ifdef VGA64x60
 	 408800-1:
 `endif
 
