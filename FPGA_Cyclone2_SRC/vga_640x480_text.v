@@ -405,7 +405,7 @@ begin
 		  end
 
 `ifdef VGA80x25
-		  784-1:                     // stop ACTIVE string
+		  784-1+8:                     // stop ACTIVE string
 `endif
 `ifdef VGA64x30
 		  784-1+10:                     // stop ACTIVE string
@@ -420,7 +420,7 @@ begin
 		  end
 
 `ifdef VGA80x25
-		  784:
+		  784+8:
 `endif
 `ifdef VGA64x30
 		  784+10:
