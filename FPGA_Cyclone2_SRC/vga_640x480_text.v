@@ -592,12 +592,16 @@ reg t = 0;
 always @(posedge i_clk)
 begin
     if (i_en_h) begin
-        q <= q + 1'b1;
-        if (q == 7) t <= 1;
-	     else t <= 0;
+        if (q == 7) begin
+            q <= 0;
+            t <= 1;
+	    end else begin
+            q <= q + 1'b1;
+            t <= 0;
+        end
 	 end else begin
-	     q <= 0;
-		  t <= 0;
+	    q <= 0;
+		t <= 0;
 	 end
 end
 assign o_t_h = t;
