@@ -1,0 +1,31 @@
+<?xml version="1" encoding="UTF-8"?>
+<!DOCTYPE gowin-fpga-project>
+<Project>
+    <Template>FPGA</Template>
+    <Version>5</Version>
+    <Device name="GW1NZ-1" pn="GW1NZ-LV1FN32C6/I5">gw1nz1-006</Device>
+    <FileList>
+        <File path="src/cur_wr_char.v" type="file.verilog" enable="1"/>
+        <File path="src/dma_cur_wr_char.v" type="file.verilog" enable="1"/>
+        <File path="src/spi_contr.v" type="file.verilog" enable="1"/>
+        <File path="src/spi_slave.v" type="file.verilog" enable="1"/>
+        <File path="src/top.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/gowin_prom/rom.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/gowin_sdpb/ram.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_avt_read_vram.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_cmp_cursor_coordinate.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_config.vh" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_cursor_blinking.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_port_io.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_ram_video_buf.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_rom_font.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_shift_reg_10bit.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_shift_reg_8bit.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_tic_10.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_tic_8.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_top.v" type="file.verilog" enable="1"/>
+        <File path="src/vga_lib/vga_vram_pos.v" type="file.verilog" enable="1"/>
+        <File path="src/vga.cst" type="file.cst" enable="1"/>
+        <File path="src/vga.sdc" type="file.sdc" enable="1"/>
+    </FileList>
+</Project>
