@@ -112,10 +112,10 @@ vga_top VGA
 `endif
 
 `ifdef VGA_DMA_PORT
-    .i_vram_addr_wr ( vram_data ),       // bus adr video ram
-    .i_vram_data_wr ( vram_adr  ),       // bus data video ram
-    .i_vram_wr_h    ( vram_we   ),          // strobe write data to mem
-    .i_cursor_addr  ( cursor_adr ),    // set cursor position
+    .i_vram_addr_wr ( vram_adr   ), // bus adr video ram
+    .i_vram_data_wr ( vram_data  ), // bus data video ram
+    .i_vram_wr_h    ( vram_we    ), // strobe write data to mem
+    .i_cursor_addr  ( cursor_adr ), // set cursor position
     .i_cursor_en    ( cursor_on  ), // cursor enable/disable
 `endif
 
