@@ -69,6 +69,8 @@ begin
     	    o_wr_h <= 0;
 	        st <= 0;
 	    end
+
+        default: st <= 0;
 	
 	endcase
 end
