@@ -30,7 +30,7 @@ module spi_contr(
     input wire i_clk,
 
 	 output wire [7:0]  o_vga_cmd,            // command 
-	 output wire [11:0] o_vga_cur_adr,        // set adr cursor
+	 output wire [10:0] o_vga_cur_adr,        // set adr cursor
 	 output wire [7:0]  o_vga_port,           // output port data
 	 input wire  [7:0]  i_vga_port,           // input port data
 	 output wire        o_vga_cs_h,           // chip select, for I/O port*
@@ -82,7 +82,7 @@ localparam CMD_W_CUR_ADR = 8'h82; // write adress cursor
 
 reg [7:0]  spi_cmd;            // SPI command 
 reg [7:0]  vga_cmd;            // VGA command 
-reg [11:0] vga_cur_adr;        // set adr cursor
+reg [10:0] vga_cur_adr;        // set adr cursor
 reg [7:0]  vga_oport;          // output port data
 reg        vga_cs_h;           // chip select, for I/O port*
 reg        vga_rl_wh;          // if =0 then RE, if =1 then WE.

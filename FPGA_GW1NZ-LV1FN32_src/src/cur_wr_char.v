@@ -4,7 +4,7 @@
 module cur_wr_char (
     input wire i_clk,
 	 output wire [7:0] o_cmd,
-	 output wire [11:0] o_cursor_adr,
+	 output wire [10:0] o_cursor_adr,
 	 output wire [7:0] o_port,
 	 output wire o_cs_h,
 	 output wire o_rl_wh,
@@ -12,7 +12,7 @@ module cur_wr_char (
 );
 
 reg [7:0]  cmd        = 0;
-reg [11:0] cursor_adr = 0;
+reg [10:0] cursor_adr = 0;
 reg [24:0] st         = 0;
 reg [7:0]  char       = 0;//8'h30;
 reg [7:0]  port       = 0;

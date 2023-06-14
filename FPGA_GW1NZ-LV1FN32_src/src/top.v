@@ -31,7 +31,7 @@ module top
 //wire i_clk;
 
 wire [7:0] cmd;           // command
-wire [11:0] cursor_adr;      // adr cursor
+wire [10:0] cursor_adr;      // adr cursor
 wire [7:0] spi_to_vga;    // data to controller
 wire [7:0] wr_to_vga;     // data to controller
 wire [7:0] vga_to_spi;    // data from controller
@@ -77,9 +77,9 @@ cur_wr_char WR_CHAR
 
 `ifdef VGA_DMA_PORT
 wire [7:0]  vram_data;
-wire [11:0] vram_adr;
+wire [10:0] vram_adr;
 wire        vram_we;
-wire [11:0] cursor_adr;
+wire [10:0] cursor_adr;
 wire        cursor_on;
 
 dma_cur_wr_char DMA_WR_CHAR

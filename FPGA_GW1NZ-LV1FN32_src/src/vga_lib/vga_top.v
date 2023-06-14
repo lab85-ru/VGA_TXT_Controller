@@ -67,7 +67,7 @@ module vga_top
 
 `ifdef VGA_CMD_PORT
     input  wire [7:0]  i_cmd,     // CMD
-	input  wire [11:0] i_cur_adr, // cursor adres
+	input  wire [10:0] i_cur_adr, // cursor adres
 	input  wire [7:0]  i_port,    // port data
 	output wire [7:0]  o_port,    // port data
 	input  wire        i_cs_h,    // chip select, for I/O port*
@@ -76,11 +76,11 @@ module vga_top
 `endif
 
 `ifdef VGA_DMA_PORT
-    input  wire [11:0] i_vram_addr_wr,       // bus adr video ram
+    input  wire [10:0] i_vram_addr_wr,       // bus adr video ram
     input  wire [7:0]  i_vram_data_wr,       // bus data video ram
     input  wire        i_vram_wr_h,          // strobe write data to mem
  
-    input  wire [11:0] i_cursor_addr,        // set cursor position
+    input  wire [10:0] i_cursor_addr,        // set cursor position
     input  wire        i_cursor_en,          // cursor enable/disable
 `endif
 
@@ -132,8 +132,8 @@ reg cr_re_h       = 0;
 reg shreg_en_h    = 0;
 
 wire wr_pos;
-wire [11:0] start_vram_addr;
-wire [11:0] vram_addr;
+wire [10:0] start_vram_addr;
+wire [10:0] vram_addr;
 wire [7:0] vram_data;        // data read from Video ram buffer
 wire [7:0] data_rom;         // data read from ROM FONT
 wire tic8_en;                // pulse 1 tic na 8 clk
@@ -141,9 +141,9 @@ wire tic8_en;                // pulse 1 tic na 8 clk
 wire cur_out_en_h;           // strob CURSOR enable to screen
 wire cur_cmp_ok_h;           // strob coordinate cursor = output char to pos screen 
 
-wire [11:0] cursor_addr;     // tekushee poloshenie cursora
+wire [10:0] cursor_addr;     // tekushee poloshenie cursora
 
-wire [11:0] vram_addr_wr;    // hina zapisi v video ram
+wire [10:0] vram_addr_wr;    // hina zapisi v video ram
 wire [7:0] vram_data_wr;
 wire vram_wr_h;
 wire cursor_en;     // signal cursor enable from register control
@@ -180,7 +180,7 @@ vga_ram_video_buf VRAM
     .i_addr_we ( vram_addr_wr ),
 	.i_we_en_h ( vram_wr_h    ),
 
-	.i_addr_re ( vram_addr[11:0] ),
+	.i_addr_re ( vram_addr[10:0] ),
 	.i_re_en_h ( c_x_en_h     ),
 	.o_d_re    ( vram_data    )
 );
@@ -241,7 +241,7 @@ vga_cmp_cursor_coordinate CMP_CUR_COOR
 (
     .i_clk           ( i_clk           ),
 	.i_cur_pos_addr  ( cursor_addr     ),  // tekushee poloshenie kursora
-	.i_out_addr_char ( vram_addr[11:0] ),  // tekushe poloshenie vivoda simvola
+	.i_out_addr_char ( vram_addr[10:0] ),  // tekushe poloshenie vivoda simvola
 	.o_cmp_ok_h      ( cur_cmp_ok_h    )
 );
 

@@ -5,10 +5,10 @@ module vga_ram_video_buf
 (
     input wire i_clk,
 	 input wire [7:0] i_d_we,
-	 input wire [11:0] i_addr_we,
+	 input wire [10:0] i_addr_we,
 	 input wire i_we_en_h,
 	 
-	 input wire [11:0] i_addr_re,
+	 input wire [10:0] i_addr_re,
 	 input wire i_re_en_h,
 	 output wire [7:0] o_d_re
 );

@@ -12,11 +12,11 @@ module vga_avt_read_vram
     input  wire        i_clk,
 	input  wire        i_en,
 	output reg         o_wr_h,
-	output wire [11:0] o_pos
+	output wire [10:0] o_pos
 );
 
 reg [2:0] st = 0;
-reg [11:0] q = 0;
+reg [10:0] q = 0;
 reg [4:0] c = 0;
 
 

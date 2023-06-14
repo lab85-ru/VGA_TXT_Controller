@@ -4,20 +4,20 @@
 module dma_cur_wr_char (
     input wire         i_clk,
     output wire [7:0]  o_vram_data,
-    output wire [11:0] o_vram_adr,
+    output wire [10:0] o_vram_adr,
     output wire        o_vram_we,
 
-    output wire [11:0] o_cursor_adr,
+    output wire [10:0] o_cursor_adr,
     output wire        o_cursor_on
 );
 
 reg [3:0]  st = 0;
 
 reg [7:0]  vram_data  = 0;
-reg [11:0] vram_adr   = 0;
+reg [10:0] vram_adr   = 0;
 reg        vram_we    = 0;
 
-reg [11:0] cursor_adr = 0;
+reg [10:0] cursor_adr = 0;
 reg        cursor_on  = 1;
 
 

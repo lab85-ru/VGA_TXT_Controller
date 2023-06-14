@@ -6,11 +6,11 @@ module vga_vram_pos
     input  wire        i_clk,
 	input  wire        i_ld_h,
 	input  wire        i_en_h,
-	input  wire [11:0] i_ld_data,
-	output wire [11:0] o
+	input  wire [10:0] i_ld_data,
+	output wire [10:0] o
 );
 
-reg [11:0] q = 0;
+reg [10:0] q = 0;
 
 always @(posedge i_clk)
 begin
