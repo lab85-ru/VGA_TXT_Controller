@@ -2,10 +2,16 @@
 VGA FPGA Text controller.
 
 PixelClk - 25,175 MHz or 25 MHz.
-Size - 494 LE.
+Altera/Intel Size - 494 LE.
 
 [https://lab85.ru](https://lab85.ru/index.php/laboratoriya-stati/46-fpga-tekstovyj-video-kontroller-na-verilog)
 
+ROM size = 4096 bytes, font 8x16.
+RAM size = 2048 bytes for VGA Monochrome or 4096 bytes for VGA Color.
+
+NEW: VGA TXT 8-COLOR 80x25 & 64x30:
+<img src="./foto/vga_640x480_80x25_color.gif">
+<img src="./foto/vga_640x480_64x30_color.gif">
 
 ALTERA Cyclone-2 EP2C5:
 <img src="./foto/vga_verilog_cyclone2_ep2c5_maket.jpg">
