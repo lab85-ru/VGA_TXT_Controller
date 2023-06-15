@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DiamondModule name="rom_font" module="rom_font" VendorName="Lattice Semiconductor Corporation" generator="IPexpress" date="2023 06 15 15:40:04.382" version="5.4" type="Module" synthesis="lse" source_format="Verilog HDL">
+  <Package>
+		<File name="" type="" modified="2023 06 15 15:40:04.338"/>
+		<File name="./8x16win1251_8.mem" type="mem" modified="2023 06 15 14:37:39.237"/>
+		<File name="rom_font.lpc" type="lpc" modified="2023 06 15 15:40:02.641"/>
+		<File name="rom_font.v" type="top_level_verilog" modified="2023 06 15 15:40:02.689"/>
+		<File name="rom_font_tmpl.v" type="template_verilog" modified="2023 06 15 15:40:02.689"/>
+		<File name="tb_rom_font_tmpl.v" type="testbench_verilog" modified="2023 06 15 15:40:02.691"/>
+  </Package>
+</DiamondModule>

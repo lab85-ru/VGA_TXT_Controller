@@ -6,15 +6,23 @@ Size - 494 LE.
 
 [https://lab85.ru](https://lab85.ru/index.php/laboratoriya-stati/46-fpga-tekstovyj-video-kontroller-na-verilog)
 
+
 ALTERA Cyclone-2 EP2C5:
-[![](http://lab85.ru/images/images/my_works/vga_controller_verilog/vga_verilog_cyclone2_ep2c5_maket.jpg)](http://lab85.ru/images/images/my_works/vga_controller_verilog/vga_verilog_cyclone2_ep2c5_maket.jpg)
+<img src="./foto/vga_verilog_cyclone2_ep2c5_maket.jpg">
 
 Spartan-3 XC3S50:
-[![](http://lab85.ru/images/images/my_works/vga_controller_verilog/vga_verilog_spartan3_xc3s50.jpg)](http://lab85.ru/images/images/my_works/vga_controller_verilog/vga_verilog_spartan3_xc3s50.jpg)
+<img src="./foto/vga_verilog_spartan3_xc3s50.jpg">
 
 GoWin GW1NZ-LV1FN32C6/I5:
-[![](http://lab85.ru/images/images/my_works/vga_controller_verilog/vga_verilog_gw1nz-lv1fn32_2.jpg)](http://lab85.ru/images/images/my_works/vga_controller_verilog/vga_verilog_gw1nz-lv1fn32_2.jpg)
+<img src="./foto/vga_verilog_gw1nz-lv1fn32_2.jpg">
+<img src="./foto/vga_verilog_gw1nz-lv1fn32_3.jpg">
+
+Lattice MachXO2 LCMXO2-7000HC:
+<img src="./foto/vga_verilog_lattice_MachXO2_LCMXO2-7000HC.jpg">
+
+Test Font 8x16:
+<img src="./foto/test_80x25_cp1251.png">
 
 Device calculate result to VGA:
-[![](http://lab85.ru/images/images/my_works/vga_controller_verilog/vga_verilog_calibrator_screen.jpg)](http://lab85.ru/images/images/my_works/vga_controller_verilog/vga_verilog_calibrator_screen.jpg)
+<img src="./foto/vga_verilog_calibrator_screen.jpg">
 
