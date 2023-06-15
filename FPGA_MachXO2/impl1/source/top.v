@@ -8,7 +8,7 @@
 //-----------------------------------------------------------------------------
 
 // `define DEBUG
-`include "vga_config.vh"
+`include "vga_lib/vga_config.vh"
 
 module top 
 (
@@ -39,6 +39,9 @@ wire cs_h;                // chip select
 wire rl_wh;               // read - write
 wire ready_h;             // controler status
 wire video_rgb;
+wire video_r;
+wire video_g;
+wire video_b;
 
 //-----------------------------------------------------------------------------
 // Most SPI to VGA
@@ -76,15 +79,16 @@ cur_wr_char WR_CHAR
 `endif
 
 `ifdef VGA_DMA_PORT
+wire [7:0]  cram_data;
 wire [7:0]  vram_data;
 wire [10:0] vram_adr;
 wire        vram_we;
-wire [10:0] cursor_adr;
 wire        cursor_on;
 
 dma_cur_wr_char DMA_WR_CHAR
 (
     .i_clk        ( i_clk      ),
+    .o_cram_data  ( cram_data  ),
     .o_vram_data  ( vram_data  ),
     .o_vram_adr   ( vram_adr   ),
     .o_vram_we    ( vram_we    ),
@@ -112,9 +116,15 @@ vga_top VGA
 `endif
 
 `ifdef VGA_DMA_PORT
+`ifdef VGA_COLOR_ENABLE
+    .i_cram_addr_wr ( vram_adr   ), // bus adr video ram
+    .i_cram_data_wr ( cram_data  ), // bus data video ram
+    .i_cram_wr_h    ( vram_we    ), // strobe write data to mem
+`endif
     .i_vram_addr_wr ( vram_adr   ), // bus adr video ram
     .i_vram_data_wr ( vram_data  ), // bus data video ram
     .i_vram_wr_h    ( vram_we    ), // strobe write data to mem
+
     .i_cursor_addr  ( cursor_adr ), // set cursor position
     .i_cursor_en    ( cursor_on  ), // cursor enable/disable
 `endif
@@ -122,14 +132,26 @@ vga_top VGA
 // VGA output
 	.o_hs      ( o_hs        ),
 	.o_vs      ( o_vs        ),
+
+`ifdef VGA_COLOR_ENABLE
+	.o_video_r ( video_r     ),
+	.o_video_g ( video_g     ),
+	.o_video_b ( video_b     )
+`else
 	.o_video   ( video_rgb   )
+`endif
 	 
 );
 
-//assign o_video_rgb = video_rgb;
+`ifdef VGA_COLOR_ENABLE
+assign o_video_r = video_r;
+assign o_video_g = video_g;
+assign o_video_b = video_b;
+`else
 assign o_video_r = video_rgb;
 assign o_video_g = video_rgb;
 assign o_video_b = video_rgb;
+`endif
 
 endmodule
 

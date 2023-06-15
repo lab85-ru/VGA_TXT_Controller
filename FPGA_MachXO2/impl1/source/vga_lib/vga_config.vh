@@ -1,7 +1,7 @@
-//`define VGA80x25 // font 8x16
-//`define VGA64x30 // font 8x16
+// VGA80x25 or VGA64x30 -> font 8x16
 
 // set resolution
+//
 `define VGA80x25
 //`define VGA64x30
 
@@ -12,3 +12,5 @@
 //
 `define VGA_DMA_PORT
 
+// VGA_COLOR_ENABLE - enable color 
+`define VGA_COLOR_ENABLE

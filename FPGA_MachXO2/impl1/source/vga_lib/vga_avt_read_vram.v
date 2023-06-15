@@ -53,8 +53,9 @@ begin
 		
 		2:
 		begin
-			if (q == RES_X_MAX * RES_Y_MAX) // /* =14'd2400*/ 
-			q <= 0;
+			if (q == RES_X_MAX * RES_Y_MAX) begin // /* =14'd2400*/ 
+                q <= 0;
+            end
 			st <= st + 1'b1;
 		end
 		

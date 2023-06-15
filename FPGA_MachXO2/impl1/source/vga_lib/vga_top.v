@@ -44,7 +44,24 @@
 //       sync Pulse
 //
 //
+// Color cram byte control: ----------------------------------------------
+// 
+//  7 6 5 4 3 2 1 0
+//  M B G R - B G R
+//  | | | | | | | |
+//  | | | | | | | +-- CHAR COLOR RED
+//  | | | | | | +---- CHAR COLOR GREEN
+//  | | | | | +------ CHAR COLOR BLUE
+//  | | | | +-------- clear
+//  | | | +---------- background RED
+//  | | +------------ background GREEN
+//  | +-------------- background BLUE
+//  +---------------- CHAR BLINK
 //
+//
+//
+//
+// ----------------------------------------------------------------------------
 // registri video controlera
 // INDEX REGISTER
 // 0 - status
@@ -82,12 +99,27 @@ module vga_top
  
     input  wire [10:0] i_cursor_addr,        // set cursor position
     input  wire        i_cursor_en,          // cursor enable/disable
+
+`ifdef VGA_COLOR_ENABLE
+    input  wire [10:0] i_cram_addr_wr,       // bus adr color video ram
+    input  wire [7:0]  i_cram_data_wr,       // bus data color video ram
+    input  wire        i_cram_wr_h,          // strobe write color data to mem
+`endif
+
 `endif
 
 // VGA analog output-------------------------------------------------
 	output wire o_hs,
 	output wire o_vs,
+
+`ifdef VGA_COLOR_ENABLE
+	output wire o_video_r,
+	output wire o_video_g,
+	output wire o_video_b
+`else
 	output wire o_video
+`endif
+
 );
 
 `ifdef VGA80x25
@@ -105,6 +137,17 @@ localparam VGA_TEXT_RES_Y_MAX = 8'd30;  // kolichestvo simvolov po Y
 //localparam VGA_TEXT_RES_Y_MAX = 8'd60;  // kolichestvo simvolov po Y
 //`endif
 
+`ifdef VGA_COLOR_ENABLE
+localparam VGA_CHAR_COLOR_BIT_R = 8'b0000_0001;
+localparam VGA_CHAR_COLOR_BIT_G = 8'b0000_0010;
+localparam VGA_CHAR_COLOR_BIT_B = 8'b0000_0100;
+
+localparam VGA_BACKGROUND_BIT_R = 8'b0001_0000;
+localparam VGA_BACKGROUND_BIT_G = 8'b0010_0000;
+localparam VGA_BACKGROUND_BIT_B = 8'b0100_0000;
+
+localparam VGA_CHAR_BLINK       = 8'b1000_0000;
+`endif
 
 reg hs = 1;               // signali synchonizachii
 reg vs = 1;
@@ -148,6 +191,26 @@ wire [7:0] vram_data_wr;
 wire vram_wr_h;
 wire cursor_en;     // signal cursor enable from register control
 
+`ifdef VGA_COLOR_ENABLE
+wire [10:0] cram_addr_wr;    // hina zapisi v video ram
+wire [7:0]  cram_data_wr;
+wire        cram_wr_h;
+wire [7:0]  cram_data;
+`endif
+
+`ifdef VGA_DMA_PORT
+`ifdef VGA_COLOR_ENABLE
+assign cram_addr_wr = i_cram_addr_wr;
+assign cram_data_wr = i_cram_data_wr;
+assign cram_wr_h    = i_cram_wr_h;
+`endif
+assign vram_addr_wr = i_vram_addr_wr;
+assign vram_data_wr = i_vram_data_wr;
+assign vram_wr_h    = i_vram_wr_h;
+assign cursor_addr  = i_cursor_addr;
+assign cursor_en    = i_cursor_en;
+`endif
+
 //-----------------------------------------------------------------------------
 // video rom (font 8x16 pixel)
 //-----------------------------------------------------------------------------
@@ -185,10 +248,82 @@ vga_ram_video_buf VRAM
 	.o_d_re    ( vram_data    )
 );
 
+`ifdef VGA_COLOR_ENABLE
+//-----------------------------------------------------------------------------
+// Color Video ram 
+//-----------------------------------------------------------------------------
+vga_ram_video_buf CVRAM 
+(
+    .i_clk     ( i_clk        ),
+    .i_d_we    ( cram_data_wr ),
+    .i_addr_we ( cram_addr_wr ),
+	.i_we_en_h ( cram_wr_h    ),
+
+	.i_addr_re ( vram_addr[10:0] ),
+	.i_re_en_h ( c_x_en_h     ),
+	.o_d_re    ( cram_data    )
+);
+`endif
+
 //-----------------------------------------------------------------------------
 // Shift register, out 8 pixel to monitor
 //-----------------------------------------------------------------------------
 `ifdef VGA80x25
+`ifdef VGA_COLOR_ENABLE
+reg [7:0] data_cram_r = 0;
+reg [7:0] data_cram_g = 0;
+reg [7:0] data_cram_b = 0;
+
+// Pipeline for simultaneous arrival cram_data & data_rom
+reg [7:0] cram_data_p1 = 0;
+reg [7:0] cram_data_p2 = 0;
+
+always @(posedge i_clk)
+begin
+    cram_data_p1 <= cram_data;
+
+    if (cram_data_p1 & VGA_CHAR_BLINK) begin 
+        // blink - on
+        cram_data_p2 <= cur_out_en_h ? cram_data_p1 : {cram_data_p1[7:4], 4'b0000};
+    end else begin 
+        // blink - off
+        cram_data_p2 <= cram_data_p1;
+    end
+
+    data_cram_r <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_R ? data_rom : 8'h00) | (cram_data_p2 & VGA_BACKGROUND_BIT_R ? 8'hff : 8'h00);
+    data_cram_g <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_G ? data_rom : 8'h00) | (cram_data_p2 & VGA_BACKGROUND_BIT_G ? 8'hff : 8'h00);
+    data_cram_b <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_B ? data_rom : 8'h00) | (cram_data_p2 & VGA_BACKGROUND_BIT_B ? 8'hff : 8'h00);
+end
+
+vga_shift_reg_8bit SHIFT_REG_COLOR_R
+(
+    .i_clk  ( i_clk    ),
+    .i_cs_h ( c_x_en_h ),      // chip select
+    .i_data ( (cur_cmp_ok_h & cur_out_en_h & cursor_en) ? 8'hff : data_cram_r), // Vhodnie danie
+    .i_ld_h ( tic8_en  ),      // load data to shift reg
+    .o_data ( o_video_r)       // output date
+);
+
+vga_shift_reg_8bit SHIFT_REG_COLOR_G
+(
+    .i_clk  ( i_clk    ),
+    .i_cs_h ( c_x_en_h ),      // chip select
+    .i_data ( (cur_cmp_ok_h & cur_out_en_h & cursor_en) ? 8'hff : data_cram_g), // Vhodnie danie
+    .i_ld_h ( tic8_en  ),      // load data to shift reg
+    .o_data ( o_video_g)       // output date
+);
+
+vga_shift_reg_8bit SHIFT_REG_COLOR_B
+(
+    .i_clk  ( i_clk    ),
+    .i_cs_h ( c_x_en_h ),      // chip select
+    .i_data ( (cur_cmp_ok_h & cur_out_en_h & cursor_en) ? 8'hff : data_cram_b), // Vhodnie danie
+    .i_ld_h ( tic8_en  ),      // load data to shift reg
+    .o_data ( o_video_b)       // output date
+);
+
+`else
+
 vga_shift_reg_8bit SHIFT_REG
 (
     .i_clk  ( i_clk    ),
@@ -197,17 +332,75 @@ vga_shift_reg_8bit SHIFT_REG
     .i_ld_h ( tic8_en  ),      // load data to shift reg
     .o_data ( o_video  )       // output date
 );
+
+`endif
 `endif
 
 `ifdef VGA64x30
+`ifdef VGA_COLOR_ENABLE
+reg [9:0] data_cram_r = 0;
+reg [9:0] data_cram_g = 0;
+reg [9:0] data_cram_b = 0;
+
+// Pipeline for simultaneous arrival cram_data & data_rom
+reg [7:0] cram_data_p1 = 0;
+reg [7:0] cram_data_p2 = 0;
+
+always @(posedge i_clk)
+begin
+    cram_data_p1 <= cram_data;
+
+    if (cram_data_p1 & VGA_CHAR_BLINK) begin 
+        // blink - on
+        cram_data_p2 <= cur_out_en_h ? cram_data_p1 : {cram_data_p1[7:4], 4'b0000};
+    end else begin 
+        // blink - off
+        cram_data_p2 <= cram_data_p1;
+    end
+
+    data_cram_r <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_R ? {data_rom, 2'b00} : 10'h000) | (cram_data_p2 & VGA_BACKGROUND_BIT_R ? 10'h3ff : 10'h000);
+    data_cram_g <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_G ? {data_rom, 2'b00} : 10'h000) | (cram_data_p2 & VGA_BACKGROUND_BIT_G ? 10'h3ff : 10'h000);
+    data_cram_b <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_B ? {data_rom, 2'b00} : 10'h000) | (cram_data_p2 & VGA_BACKGROUND_BIT_B ? 10'h3ff : 10'h000);
+end
+
+vga_shift_reg_10bit SHIFT_REG_COLOR_R
+(
+    .i_clk  ( i_clk    ),
+	.i_cs_h ( c_x_en_h ),      // chip select
+	.i_data ( (cur_cmp_ok_h & cur_out_en_h & cursor_en) ? 10'h3ff : data_cram_r), // Vhodnie danie
+	.i_ld_h ( tic8_en  ),      // load data to shift reg
+	.o_data ( o_video_r)       // output date
+);
+
+vga_shift_reg_10bit SHIFT_REG_COLOR_G
+(
+    .i_clk  ( i_clk    ),
+	.i_cs_h ( c_x_en_h ),      // chip select
+	.i_data ( (cur_cmp_ok_h & cur_out_en_h & cursor_en) ? 10'h3ff : data_cram_g), // Vhodnie danie
+	.i_ld_h ( tic8_en  ),      // load data to shift reg
+	.o_data ( o_video_g)       // output date
+);
+
+vga_shift_reg_10bit SHIFT_REG_COLOR_B
+(
+    .i_clk  ( i_clk    ),
+	.i_cs_h ( c_x_en_h ),      // chip select
+	.i_data ( (cur_cmp_ok_h & cur_out_en_h & cursor_en) ? 10'h3ff : data_cram_b), // Vhodnie danie
+	.i_ld_h ( tic8_en  ),      // load data to shift reg
+	.o_data ( o_video_b)       // output date
+);
+
+`else
+
 vga_shift_reg_10bit SHIFT_REG
 (
     .i_clk  ( i_clk    ),
 	.i_cs_h ( c_x_en_h ),      // chip select
-	.i_data ( (cur_cmp_ok_h & cur_out_en_h & cursor_en) ? 8'hff : data_rom), // Vhodnie danie
+	.i_data ( (cur_cmp_ok_h & cur_out_en_h & cursor_en) ? 10'h3ff : {data_rom, 2'b00}), // Vhodnie danie
 	.i_ld_h ( tic8_en  ),      // load data to shift reg
 	.o_data ( o_video  )       // output date
 );
+`endif
 `endif
 
 //`ifdef VGA64x60
@@ -272,14 +465,6 @@ PORT_IO
     .cursor_cur_addr ( cursor_addr ),
     .cursor_enable_h ( cursor_en   )
 );
-`endif
-
-`ifdef VGA_DMA_PORT
-assign vram_addr_wr = i_vram_addr_wr;
-assign vram_data_wr = i_vram_data_wr;
-assign vram_wr_h    = i_vram_wr_h;
-assign cursor_addr  = i_cursor_addr;
-assign cursor_en    = i_cursor_en;
 `endif
 
 //-----------------------------------------------------------------------------
