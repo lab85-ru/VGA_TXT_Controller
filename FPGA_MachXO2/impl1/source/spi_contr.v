@@ -16,7 +16,7 @@
 // 
 // (WRITE CONTROL) DATA
 // 
-// (WRITE CUR POS) pos_high  pos_low
+// (WRITE CURSOR POS) pos_high  pos_low
 // 
 // (WRITE DATA)    DATA
 // 
@@ -24,9 +24,8 @@
 // 
 //-----------------------------------------------------------------------------
 
-//`define DEBUG
-
-module spi_contr(
+module spi_contr
+(
     input wire i_clk,
 
 	 output wire [7:0]  o_vga_cmd,            // command 
@@ -44,28 +43,8 @@ module spi_contr(
 
     ,
     output wire o_d
-	 
-`ifdef DEBUG
-    ,
-	 output wire        d_spi_cs,
-	 output wire [7:0]  d_spi_i_data,
-	 output wire [7:0]  d_spi_o_data,
-	 output wire        d_spi_we,
-	 output wire        d_spi_re,
-
-	 output wire        d_spi_rx_ready,
-	 output wire        d_spi_tx_ready,
-
-	 output wire [5:0]  d_rx_bit_counter,
-	 output wire [5:0]  d_tx_bit_counter,
-	 output wire [7:0]  d_st
-`endif	 
-	 
 
 );
-
-// include VERSION this prj !
-//`include "version.txt"
 
 localparam JMP_W            = 5'd4;
 localparam JMP_R            = 5'd14;
@@ -128,15 +107,6 @@ spi_slave SPI_TO_spi
 	 .i_spi_cs_l(   i_spi_cs     ),
 	 .i_spi_mosi(   i_spi_mosi   ),
 	 .o_spi_miso(   o_spi_miso   )
-
-`ifdef DEBUG	 
-    ,
-	 .d_rx_bit_counter(d_rx_bit_counter ),
-//	 .d_rx_flag(    d_rx_flag           ),
-	 .d_tx_bit_counter(d_tx_bit_counter )
-//	 .d_tx_flag(    d_tx_flag           )
-`endif	 
-	 
 );
 
 
@@ -306,20 +276,6 @@ begin
         default: st <= 0;
         endcase
 
-/*
-	     if (spi_cmd == CMD_W_CUR_ADR) begin
-            //synopsys translate_off
-		      $display("SPIC spi_cmd == CMD_W_CUR_ADR, write to VGA cur adr = 0x%X", {vga_datah[3:0], vga_datal});
-            //synopsys translate_on
-		      vga_cur_adr <= {vga_datah[3:0], vga_datal};
-		  end else begin
-	         //synopsys translate_off
-		      $display("SPIC write to VGA data = 0x%X", vga_datah);
-		      //synopsys translate_on
-		      vga_oport <= vga_datah;
-		  end
-*/
-
 		  vga_rl_wh <= 1;
 		  vga_cs_h  <= 1;
 		  st        <= st + 1'b1;
@@ -421,18 +377,6 @@ assign o_vga_port    = vga_oport;
 assign o_vga_cs_h    = vga_cs_h;
 assign o_vga_rl_wh   = vga_rl_wh;
 
-
-`ifdef DEBUG
-assign d_st            = st;
-assign d_spi_rx_ready = spi_rx_ready;
-assign d_spi_tx_ready = spi_tx_ready;
-assign d_spi_cs       = spi_cs;
-assign d_spi_i_data   = spi_i_data;
-assign d_spi_o_data   = spi_o_data;
-assign d_spi_we       = spi_we;
-assign d_spi_re       = spi_re;
-
-`endif	 
 
 assign o_d = spi_rx_ready;
 

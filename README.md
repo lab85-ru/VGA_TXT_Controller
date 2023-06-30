@@ -13,6 +13,9 @@ NEW: VGA TXT 8-COLOR 80x25 & 64x30:
 <img src="./foto/vga_640x480_80x25_color.gif">
 <img src="./foto/vga_640x480_64x30_color.gif">
 
+STM32 - SPI Test:
+<img src="./foto/vga_640x480_80x25_color_stm32_spi_test.gif">
+
 ALTERA Cyclone-2 EP2C5:
 <img src="./foto/vga_verilog_cyclone2_ep2c5_maket.jpg">
 

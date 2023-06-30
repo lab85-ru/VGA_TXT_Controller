@@ -5,13 +5,13 @@ module vga_port_io
 (
     input  wire        i_clk,
 	
-    input  wire [7:0]  i_cmd,        // CMD
-	input  wire [10:0] i_cur_adr,    // cursor adres
-	input  wire [7:0]  i_port,       // input DATA
-	output wire [7:0]  o_port,       // output DATA
-	input  wire        i_cs_h,       // chip select
-	input  wire        i_rl_wh,      // read=0, write=1
-	output wire        o_ready_h,    // cntr = READY
+    input  wire [7:0]  i_cmd,         // CMD
+	input  wire [10:0] i_cursor_addr, // cursor adres
+	input  wire [7:0]  i_port,        // input DATA
+	output wire [7:0]  o_port,        // output DATA
+	input  wire        i_cs_h,        // chip select
+	input  wire        i_rl_wh,       // read=0, write=1
+	output wire        o_ready_h,     // cntr = READY
 	
     // Video RAM
 	output wire [10:0] o_vram_addr,
@@ -23,7 +23,7 @@ module vga_port_io
 	output wire [7:0]  o_cram_data,
 	output wire        o_cram_we_h,
 	
-    output wire [10:0] o_cursor_cur_addr,
+    output wire [10:0] o_cursor_addr,
 	output wire        o_cursor_enable_h
 );
 
@@ -39,6 +39,7 @@ module vga_port_io
     localparam RES_Y_MAX = 8'd25;
 `endif
 
+reg        ready = 1;
 
 reg [10:0] vram_addr = 0;
 reg [7:0]  vram_data = 0;
@@ -82,14 +83,16 @@ localparam REG_CONTROL = 8'h04;
 localparam REG_COLOR   = 8'h05;
 
 // REG_STATUS (bits)
-localparam BIT_READY_H      = 8'h01;   // bit gotovnost, rezultat vipolneniya posledney komandi 
+localparam REG_STATUS_BIT_READY_MASK = 8'h01; // bit ready, MASK
+localparam REG_STATUS_BIT_READY_POS  = 8'h00; // bit ready, Bit position
 
 // REG_CONTROL (bits)
-localparam BIT_CUR_ENABLE_H = 8'h01;   // bit viklucheniya kursora
+localparam REG_CONTROL_BIT_CURSOR_EN_MASK = 8'h01; // bit cursor enable/disable, MASK
+localparam REG_CONTROL_BIT_CURSOR_EN_POS  = 8'h00; // bit cursor enable/disable, Bit position
 
-reg [10:0] reg_cur_addr_pos = 0;      // vga register: cursor addr position
-reg [7:0]  reg_status       = 8'ha0 | BIT_READY_H;  // vga register: status
-reg [7:0]  reg_control      = BIT_CUR_ENABLE_H;  // vga register control
+reg [10:0] reg_cursor_addr = 0;      // vga register: cursor addr position
+reg [7:0]  reg_status      = 8'ha0 | REG_STATUS_BIT_READY_MASK;  // vga register: status - set ready
+reg [7:0]  reg_control     = REG_CONTROL_BIT_CURSOR_EN_MASK;     // vga register control
 
 // registri video controlera --------------------------------------------------
 
@@ -104,23 +107,23 @@ begin
 				//synopsys translate_on
 				cmd <= i_cmd;
 				st  <= st + 1'b1;
-				reg_status[ BIT_READY_H ] <= 0;
+				ready <= 0;
 			end else 
-                reg_status[ BIT_READY_H ] <= 1; // vontrolleer READY for new command
+                ready <= 1; // controller READY
 		end
 		
 		1:
 		begin
 			if (i_rl_wh == 0) begin //read -----------------------------------------------------
 				//synopsys translate_off
-				$display("rtl: VGA read.");
+				$display("rtl: VGA Operation Read.");
 				//synopsys translate_on
-				
+
 				case (cmd)
 					REG_STATUS:  data_io <= reg_status;                        // status
 					REG_DATA:    data_io <= 8'b1111_1111;                      // data wire, read= ff
-					REG_CUR_AL:  data_io <= reg_cur_addr_pos[7:0];             // addr low
-					REG_CUR_AH:  data_io <= {5'b00000, reg_cur_addr_pos[10:8]}; // addr high
+					REG_CUR_AL:  data_io <= reg_cursor_addr[7:0];              // addr low
+					REG_CUR_AH:  data_io <= {5'b00000, reg_cursor_addr[10:8]}; // addr high
 					REG_CONTROL: data_io <= reg_control;                       // control
 					default:     data_io <= 8'hee;                             // return ERROR
 				endcase
@@ -128,7 +131,7 @@ begin
 				
 			end else begin  // write -----------------------------------------------------------
 				//synopsys translate_off
-				$display("rtl: VGA write.");
+				$display("rtl: VGA Operation Write.");
 				//synopsys translate_on
 				
 				case (cmd)
@@ -150,9 +153,9 @@ begin
 					
 					REG_CUR_AL, REG_CUR_AH:
 					begin
-						reg_cur_addr_pos <= i_cur_adr;
+						reg_cursor_addr <= i_cursor_addr;
 						//synopsys translate_off
-						$display("rtl: VGA reg_cur_addr_pos = 0x%X i_cur_adr = 0x%X", reg_cur_addr_pos, i_cur_adr);
+						$display("rtl: VGA reg_cursor_addr = 0x%X", i_cursor_addr);
 						//synopsys translate_on
 			    		st <= 0;
 					end 
@@ -190,17 +193,17 @@ begin
 		2:
 		begin
 			//synopsys translate_off
-			$display("rtl: VGA reg_cur_addr_pos = %d", reg_cur_addr_pos);
+			$display("rtl: VGA reg_cursor_addr = %d", reg_cursor_addr);
 			//synopsys translate_on
-			vram_addr <= reg_cur_addr_pos;
+			vram_addr <= reg_cursor_addr;
 			vram_data <= pd;
 			vram_we_h <= 1;
 
-			cram_addr <= reg_cur_addr_pos;
+			cram_addr <= reg_cursor_addr;
 			cram_data <= reg_color_attr;
 			cram_we_h <= 1;
 
-			reg_cur_addr_pos <= reg_cur_addr_pos + 1'b1;
+			reg_cursor_addr <= reg_cursor_addr + 1'b1;
 			st <= st + 1'b1;
 		end
 					
@@ -208,7 +211,7 @@ begin
 		begin
 			vram_we_h <= 0;
 			cram_we_h <= 0;
-			if (reg_cur_addr_pos == RES_X_MAX * RES_Y_MAX) reg_cur_addr_pos <= 0;
+			if (reg_cursor_addr == RES_X_MAX * RES_Y_MAX) reg_cursor_addr <= 0;
 			st <= 0;
 		end
 					
@@ -222,10 +225,10 @@ begin
 end
 
 					
-assign o_ready_h         = reg_status[ BIT_READY_H ];
+assign o_ready_h         = ready;
 assign o_port            = data_io;
-assign o_cursor_cur_addr = reg_cur_addr_pos;
-assign o_cursor_enable_h = reg_control[ BIT_CUR_ENABLE_H ];
+assign o_cursor_addr     = reg_cursor_addr;
+assign o_cursor_enable_h = reg_control[ REG_CONTROL_BIT_CURSOR_EN_POS ];
 
 assign o_vram_addr = vram_addr;
 assign o_vram_data = vram_data;

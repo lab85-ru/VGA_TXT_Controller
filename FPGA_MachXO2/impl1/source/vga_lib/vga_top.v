@@ -2,6 +2,7 @@
 // VGA 640x480 pixel 60 Hz Standart
 // Text video adapter: 80x25 char (30 text strok to 25, ne vivodim 40 strok s verhu i 40 strok s nizu !!! ekonomiya video ram 4096 -> 2048 !!!)
 // Color: 0-1/ RGB - 8 Color
+// info@lab85.ru Sviridov Georgy
 //
 // input i_clk = 25.175 MHz T= 39.72 ns (25MHz-40 ns)
 // 
@@ -83,13 +84,13 @@ module vga_top
     input  wire i_clk,
 
 `ifdef VGA_CMD_PORT
-    input  wire [7:0]  i_cmd,     // CMD
-	input  wire [10:0] i_cur_adr, // cursor adres
-	input  wire [7:0]  i_port,    // port data
-	output wire [7:0]  o_port,    // port data
-	input  wire        i_cs_h,    // chip select, for I/O port*
-	input  wire        i_rl_wh,   // if =0 then RE, if =1 then WE.
-	output wire        o_ready_h, // controler gotov
+    input  wire [7:0]  i_cmd,         // CMD
+	input  wire [10:0] i_cursor_addr, // cursor adres
+	input  wire [7:0]  i_port,        // port data
+	output wire [7:0]  o_port,        // port data
+	input  wire        i_cs_h,        // chip select, for I/O port*
+	input  wire        i_rl_wh,       // if =0 then RE, if =1 then WE.
+	output wire        o_ready_h,     // controler gotov
 `endif
 
 `ifdef VGA_DMA_PORT
@@ -470,24 +471,24 @@ vga_cmp_cursor_coordinate CMP_CUR_COOR
 `ifdef VGA_CMD_PORT
 vga_port_io PORT_IO
 (
-    .i_clk       ( i_clk     ),
-    .i_cmd       ( i_cmd     ),
-    .i_cur_adr   ( i_cur_adr ),
-    .i_port      ( i_port    ),
-    .o_port      ( o_port    ),
-    .i_cs_h      ( i_cs_h    ),
-    .i_rl_wh     ( i_rl_wh   ),
-    .o_ready_h   ( o_ready_h ),
+    .i_clk         ( i_clk     ),
+    .i_cmd         ( i_cmd     ),
+    .i_cursor_addr ( i_cursor_addr ),
+    .i_port        ( i_port    ),
+    .o_port        ( o_port    ),
+    .i_cs_h        ( i_cs_h    ),
+    .i_rl_wh       ( i_rl_wh   ),
+    .o_ready_h     ( o_ready_h ),
 
-    .o_vram_addr ( vram_addr_wr ),
-    .o_vram_data ( vram_data_wr ),
-    .o_vram_we_h ( vram_wr_h    ),
+    .o_vram_addr   ( vram_addr_wr ),
+    .o_vram_data   ( vram_data_wr ),
+    .o_vram_we_h   ( vram_wr_h    ),
  
-    .o_cram_addr ( cram_addr_wr ),
-    .o_cram_data ( cram_data_wr ),
-    .o_cram_we_h ( cram_wr_h    ),
+    .o_cram_addr   ( cram_addr_wr ),
+    .o_cram_data   ( cram_data_wr ),
+    .o_cram_we_h   ( cram_wr_h    ),
  
-    .o_cursor_cur_addr ( cursor_addr ),
+    .o_cursor_addr     ( cursor_addr ),
     .o_cursor_enable_h ( cursor_en   )
 );
 `endif

@@ -33,7 +33,7 @@ module top
 //wire i_clk;
 
 wire [7:0] cmd;           // command
-wire [10:0] cursor_adr;   // adr cursor
+wire [10:0] cursor_adr;   // addr cursor
 wire [7:0] spi_to_vga;    // data to controller
 wire [7:0] wr_to_vga;     // data to controller
 wire [7:0] vga_to_spi;    // data from controller
@@ -110,14 +110,14 @@ vga_top VGA
     .i_clk     ( i_clk       ),
 
 `ifdef VGA_CMD_PORT
-	.i_cmd     ( cmd         ),   // CMD
-	.i_cur_adr ( cursor_adr  ),   // cursor ADRES
-//	.i_port    ( spi_to_vga  ),   // port data
-	.i_port    ( wr_to_vga   ),   // port data
-	.o_port    ( vga_to_spi  ),   // port data
-	.i_cs_h    ( cs_h        ),   // chip select, for I/O port*
-	.i_rl_wh   ( rl_wh       ),   // if =1 then RE, if =0 then WE.
-	.o_ready_h ( ready_h     ),   // controler zanat
+	.i_cmd         ( cmd         ),   // CMD
+	.i_cursor_addr ( cursor_adr  ),   // cursor ADRES
+//	.i_port        ( spi_to_vga  ),   // port data
+	.i_port        ( wr_to_vga   ),   // port data
+	.o_port        ( vga_to_spi  ),   // port data
+	.i_cs_h        ( cs_h        ),   // chip select, for I/O port*
+	.i_rl_wh       ( rl_wh       ),   // if =1 then RE, if =0 then WE.
+	.o_ready_h     ( ready_h     ),   // controler zanat
 `endif
 
 `ifdef VGA_DMA_PORT
