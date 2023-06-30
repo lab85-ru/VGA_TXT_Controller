@@ -20,7 +20,7 @@
 // 
 // (WRITE DATA)    DATA
 // 
-// 
+// (WRITE COLOR)   COLOR-DATA
 // 
 //-----------------------------------------------------------------------------
 
@@ -41,6 +41,9 @@ module spi_contr(
 	 input wire         i_spi_cs,
 	 input wire         i_spi_sck,
 	 output wire        o_spi_miso
+
+    ,
+    output wire o_d
 	 
 `ifdef DEBUG
     ,
@@ -79,15 +82,17 @@ localparam CMD_W_STATUS  = 8'h80; // write to status
 localparam CMD_W_CONTROL = 8'h84; // write to control
 localparam CMD_W_DATA    = 8'h81; // write data to position cursor
 localparam CMD_W_CUR_ADR = 8'h82; // write adress cursor
+localparam CMD_W_COLOR   = 8'h85; // write color char + color background + blink
 
-reg [7:0]  spi_cmd;            // SPI command 
-reg [7:0]  vga_cmd;            // VGA command 
-reg [10:0] vga_cur_adr;        // set adr cursor
-reg [7:0]  vga_oport;          // output port data
-reg        vga_cs_h;           // chip select, for I/O port*
-reg        vga_rl_wh;          // if =0 then RE, if =1 then WE.
-reg [7:0]  vga_datah;          // data high
-reg [7:0]  vga_datal;          // data low
+
+reg [7:0]  spi_cmd     = 0;  // SPI command 
+reg [7:0]  vga_cmd     = 0;  // VGA command 
+reg [10:0] vga_cur_adr = 0;  // set adr cursor
+reg [7:0]  vga_oport   = 0;  // output port data
+reg        vga_cs_h    = 0;  // chip select, for I/O port*
+reg        vga_rl_wh   = 0;  // if =0 then RE, if =1 then WE.
+reg [7:0]  vga_datah   = 0;  // data high
+reg [7:0]  vga_datal   = 0;  // data low
 
 
 // spi spi wires -------------------------------------------------------------
@@ -178,7 +183,7 @@ begin
 		  //synopsys translate_on
 
 	     case (spi_cmd)
-            CMD_W_STATUS, CMD_W_CONTROL, CMD_W_DATA, CMD_W_CUR_ADR:
+            CMD_W_STATUS, CMD_W_CONTROL, CMD_W_DATA, CMD_W_CUR_ADR, CMD_W_COLOR:
 				begin
 	             //synopsys translate_off
 		          $display("SPIC JMP_W");
@@ -281,9 +286,30 @@ begin
 	 
     JMP_W + 8: // write data to VGA
 	 begin
+        case (spi_cmd)
+        CMD_W_CUR_ADR:
+        begin
+            //synopsys translate_off
+		    $display("SPIC spi_cmd == CMD_W_CUR_ADR, write to VGA cur adr = 0x%X", {vga_datah[3:0], vga_datal});
+            //synopsys translate_on
+		    vga_cur_adr <= {vga_datah[2:0], vga_datal};
+        end
+
+        CMD_W_STATUS, CMD_W_CONTROL, CMD_W_DATA, CMD_W_COLOR:
+        begin
+            //synopsys translate_off
+		    $display("SPIC write to VGA data = 0x%X", vga_datah);
+		    //synopsys translate_on
+		    vga_oport <= vga_datah;
+        end
+
+        default: st <= 0;
+        endcase
+
+/*
 	     if (spi_cmd == CMD_W_CUR_ADR) begin
             //synopsys translate_off
-		      $display("SPIC spi_cmd == CMD_W_CUR_ADR, write to VGA data = 0x%X", {vga_datah[3:0], vga_datal});
+		      $display("SPIC spi_cmd == CMD_W_CUR_ADR, write to VGA cur adr = 0x%X", {vga_datah[3:0], vga_datal});
             //synopsys translate_on
 		      vga_cur_adr <= {vga_datah[3:0], vga_datal};
 		  end else begin
@@ -292,6 +318,8 @@ begin
 		      //synopsys translate_on
 		      vga_oport <= vga_datah;
 		  end
+*/
+
 		  vga_rl_wh <= 1;
 		  vga_cs_h  <= 1;
 		  st        <= st + 1'b1;
@@ -406,5 +434,6 @@ assign d_spi_re       = spi_re;
 
 `endif	 
 
+assign o_d = spi_rx_ready;
 
 endmodule

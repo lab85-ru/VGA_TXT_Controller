@@ -2,53 +2,84 @@
 // avtomat port I/O
 //-----------------------------------------------------------------------------
 module vga_port_io 
-#(
-    parameter RES_X_MAX = 8'd80,
-	parameter RES_Y_MAX = 8'd25
-)
-
 (
-    input  wire i_clk,
+    input  wire        i_clk,
 	
     input  wire [7:0]  i_cmd,        // CMD
-	input  wire [11:0] i_cur_adr,    // cursor adres
+	input  wire [10:0] i_cur_adr,    // cursor adres
 	input  wire [7:0]  i_port,       // input DATA
 	output wire [7:0]  o_port,       // output DATA
 	input  wire        i_cs_h,       // chip select
 	input  wire        i_rl_wh,      // read=0, write=1
 	output wire        o_ready_h,    // cntr = READY
 	
-	output reg [11:0]  vram_addr,
-	output reg [7:0]   vram_data,
-	output reg         vram_we_h,
+    // Video RAM
+	output wire [10:0] o_vram_addr,
+	output wire [7:0]  o_vram_data,
+	output wire        o_vram_we_h,
+
+    // Color Attribute RAM
+	output wire [10:0] o_cram_addr,
+	output wire [7:0]  o_cram_data,
+	output wire        o_cram_we_h,
 	
-    output wire [11:0] cursor_cur_addr,
-	output wire        cursor_enable_h
+    output wire [10:0] o_cursor_cur_addr,
+	output wire        o_cursor_enable_h
 );
 
-initial
-begin
-    vram_addr = 0;
-	vram_data = 0;
-	vram_we_h = 0;
-end
+`include "vga_config.vh"
 
+`ifdef VGA64x30
+    localparam RES_X_MAX = 8'd64;
+    localparam RES_Y_MAX = 8'd30;
+`endif
+
+`ifdef VGA80x25
+    localparam RES_X_MAX = 8'd80;
+    localparam RES_Y_MAX = 8'd25;
+`endif
+
+
+reg [10:0] vram_addr = 0;
+reg [7:0]  vram_data = 0;
+reg        vram_we_h = 0;
+
+reg [10:0] cram_addr = 0;
+reg [7:0]  cram_data = 0;
+reg        cram_we_h = 0;
+
+reg [7:0]  reg_color_attr  = 8'b0_000_0_111; // Color attribute register (default char white RGB = ON)
+//  7 6 5 4 3 2 1 0
+//  M B G R - B G R
+//  | | | | | | | |
+//  | | | | | | | +-- CHAR COLOR RED
+//  | | | | | | +---- CHAR COLOR GREEN
+//  | | | | | +------ CHAR COLOR BLUE
+//  | | | | +-------- clear
+//  | | | +---------- background RED
+//  | | +------------ background GREEN
+//  | +-------------- background BLUE
+//  +---------------- CHAR BLINK
+
+	
 reg [2:0] st      = 0;  // avtomat state
 reg [7:0] cmd     = 0;  // cmd
 reg [7:0] pd      = 0;  // data port data
 reg [7:0] data_io = 0;
 
 // registri video controlera --------------------------------------------------
-	// 0 - status
-	// 1 - data write
-	// 2 - cursor addr (for write char) pos low
-	// 3 - cursor addr (for write char) pos high
+// 0 - status
+// 1 - data write
+// 2 - cursor addr (for write char) pos low
+// 3 - cursor addr (for write char) pos high
 // 4 - control
+// 5 - set color + attributes
 localparam REG_STATUS  = 8'h00;
 localparam REG_DATA    = 8'h01;
 localparam REG_CUR_AL  = 8'h02;
 localparam REG_CUR_AH  = 8'h03;
 localparam REG_CONTROL = 8'h04;
+localparam REG_COLOR   = 8'h05;
 
 // REG_STATUS (bits)
 localparam BIT_READY_H      = 8'h01;   // bit gotovnost, rezultat vipolneniya posledney komandi 
@@ -56,7 +87,7 @@ localparam BIT_READY_H      = 8'h01;   // bit gotovnost, rezultat vipolneniya po
 // REG_CONTROL (bits)
 localparam BIT_CUR_ENABLE_H = 8'h01;   // bit viklucheniya kursora
 
-reg [11:0] reg_cur_addr_pos = 0;      // vga register: cursor addr position
+reg [10:0] reg_cur_addr_pos = 0;      // vga register: cursor addr position
 reg [7:0]  reg_status       = 8'ha0 | BIT_READY_H;  // vga register: status
 reg [7:0]  reg_control      = BIT_CUR_ENABLE_H;  // vga register control
 
@@ -89,7 +120,7 @@ begin
 					REG_STATUS:  data_io <= reg_status;                        // status
 					REG_DATA:    data_io <= 8'b1111_1111;                      // data wire, read= ff
 					REG_CUR_AL:  data_io <= reg_cur_addr_pos[7:0];             // addr low
-					REG_CUR_AH:  data_io <= {4'b0000, reg_cur_addr_pos[11:8]}; // addr high
+					REG_CUR_AH:  data_io <= {5'b00000, reg_cur_addr_pos[10:8]}; // addr high
 					REG_CONTROL: data_io <= reg_control;                       // control
 					default:     data_io <= 8'hee;                             // return ERROR
 				endcase
@@ -135,6 +166,15 @@ begin
 					    st <= 0;
 					end
 					
+					REG_COLOR:
+					begin
+				    	//synopsys translate_off
+					    $display("rtl: VGA write Color = 0x%X", i_port);
+					    //synopsys translate_on
+					    reg_color_attr <= i_port;
+					    st <= 0;
+					end
+					
 					default:
 					begin
 					    //synopsys translate_off
@@ -155,6 +195,11 @@ begin
 			vram_addr <= reg_cur_addr_pos;
 			vram_data <= pd;
 			vram_we_h <= 1;
+
+			cram_addr <= reg_cur_addr_pos;
+			cram_data <= reg_color_attr;
+			cram_we_h <= 1;
+
 			reg_cur_addr_pos <= reg_cur_addr_pos + 1'b1;
 			st <= st + 1'b1;
 		end
@@ -162,6 +207,7 @@ begin
 		3:
 		begin
 			vram_we_h <= 0;
+			cram_we_h <= 0;
 			if (reg_cur_addr_pos == RES_X_MAX * RES_Y_MAX) reg_cur_addr_pos <= 0;
 			st <= 0;
 		end
@@ -174,10 +220,19 @@ begin
 	endcase
 					
 end
+
 					
-assign cursor_cur_addr = reg_cur_addr_pos;
-assign o_ready_h       = reg_status[ BIT_READY_H ];
-assign o_port          = data_io;
-assign cursor_enable_h = reg_control[ BIT_CUR_ENABLE_H ];
+assign o_ready_h         = reg_status[ BIT_READY_H ];
+assign o_port            = data_io;
+assign o_cursor_cur_addr = reg_cur_addr_pos;
+assign o_cursor_enable_h = reg_control[ BIT_CUR_ENABLE_H ];
+
+assign o_vram_addr = vram_addr;
+assign o_vram_data = vram_data;
+assign o_vram_we_h = vram_we_h;
+
+assign o_cram_addr = cram_addr;
+assign o_cram_data = cram_data;
+assign o_cram_we_h = cram_we_h;
 
 endmodule

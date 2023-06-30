@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 // VGA 640x480 pixel 60 Hz Standart
 // Text video adapter: 80x25 char (30 text strok to 25, ne vivodim 40 strok s verhu i 40 strok s nizu !!! ekonomiya video ram 4096 -> 2048 !!!)
-// Color: 0-1
+// Color: 0-1/ RGB - 8 Color
 //
 // input i_clk = 25.175 MHz T= 39.72 ns (25MHz-40 ns)
 // 
@@ -243,7 +243,7 @@ vga_ram_video_buf VRAM
     .i_addr_we ( vram_addr_wr ),
 	.i_we_en_h ( vram_wr_h    ),
 
-	.i_addr_re ( vram_addr[10:0] ),
+	.i_addr_re ( vram_addr    ),
 	.i_re_en_h ( c_x_en_h     ),
 	.o_d_re    ( vram_data    )
 );
@@ -259,7 +259,7 @@ vga_ram_video_buf CVRAM
     .i_addr_we ( cram_addr_wr ),
 	.i_we_en_h ( cram_wr_h    ),
 
-	.i_addr_re ( vram_addr[10:0] ),
+	.i_addr_re ( vram_addr    ),
 	.i_re_en_h ( c_x_en_h     ),
 	.o_d_re    ( cram_data    )
 );
@@ -290,9 +290,22 @@ begin
         cram_data_p2 <= cram_data_p1;
     end
 
-    data_cram_r <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_R ? data_rom : 8'h00) | (cram_data_p2 & VGA_BACKGROUND_BIT_R ? 8'hff : 8'h00);
-    data_cram_g <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_G ? data_rom : 8'h00) | (cram_data_p2 & VGA_BACKGROUND_BIT_G ? 8'hff : 8'h00);
-    data_cram_b <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_B ? data_rom : 8'h00) | (cram_data_p2 & VGA_BACKGROUND_BIT_B ? 8'hff : 8'h00);
+    if ((cram_data_p2 & (VGA_CHAR_COLOR_BIT_R | VGA_CHAR_COLOR_BIT_G | VGA_CHAR_COLOR_BIT_B)) == 0) begin
+        if ((cram_data_p1 & VGA_CHAR_BLINK) && (cur_out_en_h == 0)) begin
+            data_cram_r <= (cram_data_p2 & VGA_BACKGROUND_BIT_R ? 8'hff : 8'h00);
+            data_cram_g <= (cram_data_p2 & VGA_BACKGROUND_BIT_G ? 8'hff : 8'h00);
+            data_cram_b <= (cram_data_p2 & VGA_BACKGROUND_BIT_B ? 8'hff : 8'h00);
+        end else begin
+            data_cram_r <= (cram_data_p2 & VGA_BACKGROUND_BIT_R ? ~data_rom : 8'h00);
+            data_cram_g <= (cram_data_p2 & VGA_BACKGROUND_BIT_G ? ~data_rom : 8'h00);
+            data_cram_b <= (cram_data_p2 & VGA_BACKGROUND_BIT_B ? ~data_rom : 8'h00);
+        end
+
+    end else begin
+        data_cram_r <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_R ? data_rom : 8'h00) | (cram_data_p2 & VGA_BACKGROUND_BIT_R ? ~data_rom : 8'h00);
+        data_cram_g <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_G ? data_rom : 8'h00) | (cram_data_p2 & VGA_BACKGROUND_BIT_G ? ~data_rom : 8'h00);
+        data_cram_b <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_B ? data_rom : 8'h00) | (cram_data_p2 & VGA_BACKGROUND_BIT_B ? ~data_rom : 8'h00);
+    end
 end
 
 vga_shift_reg_8bit SHIFT_REG_COLOR_R
@@ -358,9 +371,22 @@ begin
         cram_data_p2 <= cram_data_p1;
     end
 
-    data_cram_r <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_R ? {data_rom, 2'b00} : 10'h000) | (cram_data_p2 & VGA_BACKGROUND_BIT_R ? 10'h3ff : 10'h000);
-    data_cram_g <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_G ? {data_rom, 2'b00} : 10'h000) | (cram_data_p2 & VGA_BACKGROUND_BIT_G ? 10'h3ff : 10'h000);
-    data_cram_b <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_B ? {data_rom, 2'b00} : 10'h000) | (cram_data_p2 & VGA_BACKGROUND_BIT_B ? 10'h3ff : 10'h000);
+    if ((cram_data_p2 & (VGA_CHAR_COLOR_BIT_R | VGA_CHAR_COLOR_BIT_G | VGA_CHAR_COLOR_BIT_B)) == 0) begin
+        if ((cram_data_p1 & VGA_CHAR_BLINK) && (cur_out_en_h == 0)) begin
+            data_cram_r <= (cram_data_p2 & VGA_BACKGROUND_BIT_R ? 10'h3ff : 10'h000);
+            data_cram_g <= (cram_data_p2 & VGA_BACKGROUND_BIT_G ? 10'h3ff : 10'h000);
+            data_cram_b <= (cram_data_p2 & VGA_BACKGROUND_BIT_B ? 10'h3ff : 10'h000);
+        end else begin
+            data_cram_r <= (cram_data_p2 & VGA_BACKGROUND_BIT_R ? ~{1'b0, data_rom, 1'b0} : 10'h000);
+            data_cram_g <= (cram_data_p2 & VGA_BACKGROUND_BIT_G ? ~{1'b0, data_rom, 1'b0} : 10'h000);
+            data_cram_b <= (cram_data_p2 & VGA_BACKGROUND_BIT_B ? ~{1'b0, data_rom, 1'b0} : 10'h000);
+        end
+    end else begin
+        data_cram_r <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_R ? {1'b0, data_rom, 1'b0} : 10'h000) | (cram_data_p2 & VGA_BACKGROUND_BIT_R ? ~{1'b0, data_rom, 1'b0} : 10'h000);
+        data_cram_g <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_G ? {1'b0, data_rom, 1'b0} : 10'h000) | (cram_data_p2 & VGA_BACKGROUND_BIT_G ? ~{1'b0, data_rom, 1'b0} : 10'h000);
+        data_cram_b <= (cram_data_p2 & VGA_CHAR_COLOR_BIT_B ? {1'b0, data_rom, 1'b0} : 10'h000) | (cram_data_p2 & VGA_BACKGROUND_BIT_B ? ~{1'b0, data_rom, 1'b0} : 10'h000);
+    end
+
 end
 
 vga_shift_reg_10bit SHIFT_REG_COLOR_R
@@ -434,7 +460,7 @@ vga_cmp_cursor_coordinate CMP_CUR_COOR
 (
     .i_clk           ( i_clk           ),
 	.i_cur_pos_addr  ( cursor_addr     ),  // tekushee poloshenie kursora
-	.i_out_addr_char ( vram_addr[10:0] ),  // tekushe poloshenie vivoda simvola
+	.i_out_addr_char ( vram_addr       ),  // tekushe poloshenie vivoda simvola
 	.o_cmp_ok_h      ( cur_cmp_ok_h    )
 );
 
@@ -442,28 +468,27 @@ vga_cmp_cursor_coordinate CMP_CUR_COOR
 // Avtomat video controlera I/O data - controls - status
 //-----------------------------------------------------------------------------
 `ifdef VGA_CMD_PORT
-vga_port_io 
-#(
-    .RES_X_MAX ( VGA_TEXT_RES_X_MAX ),
-    .RES_Y_MAX ( VGA_TEXT_RES_Y_MAX )
-)
-PORT_IO
+vga_port_io PORT_IO
 (
-    .i_clk     ( i_clk     ),
-    .i_cmd     ( i_cmd     ),
-    .i_cur_adr ( i_cur_adr ),
-    .i_port    ( i_port    ),
-    .o_port    ( o_port    ),
-    .i_cs_h    ( i_cs_h    ),
-    .i_rl_wh   ( i_rl_wh   ),
-    .o_ready_h ( o_ready_h ),
+    .i_clk       ( i_clk     ),
+    .i_cmd       ( i_cmd     ),
+    .i_cur_adr   ( i_cur_adr ),
+    .i_port      ( i_port    ),
+    .o_port      ( o_port    ),
+    .i_cs_h      ( i_cs_h    ),
+    .i_rl_wh     ( i_rl_wh   ),
+    .o_ready_h   ( o_ready_h ),
 
-    .vram_addr ( vram_addr_wr ),
-    .vram_data ( vram_data_wr ),
-    .vram_we_h ( vram_wr_h    ),
+    .o_vram_addr ( vram_addr_wr ),
+    .o_vram_data ( vram_data_wr ),
+    .o_vram_we_h ( vram_wr_h    ),
  
-    .cursor_cur_addr ( cursor_addr ),
-    .cursor_enable_h ( cursor_en   )
+    .o_cram_addr ( cram_addr_wr ),
+    .o_cram_data ( cram_data_wr ),
+    .o_cram_we_h ( cram_wr_h    ),
+ 
+    .o_cursor_cur_addr ( cursor_addr ),
+    .o_cursor_enable_h ( cursor_en   )
 );
 `endif
 

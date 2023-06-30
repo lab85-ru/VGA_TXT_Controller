@@ -6,11 +6,11 @@
 //`define VGA64x30
 
 // port intenal FPGA or SPI controller
-//`define VGA_CMD_PORT
+//
+`define VGA_CMD_PORT
 
 // port DMA for internal FPGA
-//
-`define VGA_DMA_PORT
+//`define VGA_DMA_PORT
 
 // VGA_COLOR_ENABLE - enable color 
 `define VGA_COLOR_ENABLE

@@ -19,19 +19,21 @@ module top
 	 output wire o_video_b,
 	 output wire o_vs,
 	 output wire o_hs
-//     ,
+     ,
 	 
-//	 input wire i_spi_mosi,              // EXTERNAL i/o interface SPI for DM
-//	 input wire i_spi_cs,
-//	 input wire i_spi_sck,
-//	 output wire o_spi_miso
+	 input wire i_spi_mosi,              // EXTERNAL i/o interface SPI for DM
+	 input wire i_spi_cs,
+	 input wire i_spi_sck,
+	 output wire o_spi_miso
+    ,
+    output wire o_d
 );
 
 
 //wire i_clk;
 
 wire [7:0] cmd;           // command
-wire [10:0] cursor_adr;      // adr cursor
+wire [10:0] cursor_adr;   // adr cursor
 wire [7:0] spi_to_vga;    // data to controller
 wire [7:0] wr_to_vga;     // data to controller
 wire [7:0] vga_to_spi;    // data from controller
@@ -43,16 +45,16 @@ wire video_r;
 wire video_g;
 wire video_b;
 
+
 //-----------------------------------------------------------------------------
 // Most SPI to VGA
 //-----------------------------------------------------------------------------
-/*
 spi_contr SPI_TO_VGA
 (
     .i_clk         ( i_clk      ),
 	.o_vga_cmd     ( cmd        ),    // command 
 	.o_vga_cur_adr ( cursor_adr ),    // set adr cursor
-	.o_vga_port    ( spi_to_vga ),    // output port data
+	.o_vga_port    ( wr_to_vga  ),    // output port data
 	.i_vga_port    ( vga_to_spi ),    // input port data
 	.o_vga_cs_h    ( cs_h       ),    // chip select, for I/O port*
 	.o_vga_rl_wh   ( rl_wh      ),    // if =0 then RE, if =1 then WE.
@@ -62,9 +64,11 @@ spi_contr SPI_TO_VGA
 	.i_spi_cs      ( i_spi_cs   ),
 	.i_spi_sck     ( i_spi_sck  ),
 	.o_spi_miso    ( o_spi_miso )
+    ,
+    .o_d (o_d)
 );
-*/
 
+/*
 `ifdef VGA_CMD_PORT
 cur_wr_char WR_CHAR 
 (
@@ -77,6 +81,7 @@ cur_wr_char WR_CHAR
 	.i_ready_h    ( ready_h    ) 
 );
 `endif
+*/
 
 `ifdef VGA_DMA_PORT
 wire [7:0]  cram_data;
@@ -152,6 +157,8 @@ assign o_video_r = video_rgb;
 assign o_video_g = video_rgb;
 assign o_video_b = video_rgb;
 `endif
+
+//assign o_d = ready_h;
 
 endmodule
 
